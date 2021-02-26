@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--suppress AndroidUnknownAttribute -->
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:bind="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".TalkingMainActivity"
+    >
+
+    <data>
+
+        <variable
+            name="viewModel"
+            type="dev.filipebezerra.android.talkingapp.TalkingViewModel"
+            />
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main_root_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <FrameLayout
+            android:id="@+id/empty_layout"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toTopOf="@id/text_message_input_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            bind:visibleIf="@{viewModel.noMessages}"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:drawablePadding="@dimen/normal_spacing"
+                android:text="@string/start_saying_something"
+                android:textAppearance="?attr/textAppearanceBody1"
+                app:drawableTopCompat="@drawable/ic_writing"
+                />
+        </FrameLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/messages_list"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintBottom_toTopOf="@id/text_message_input_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            bind:goneIf="@{viewModel.noMessages}"
+            bind:messagesList="@{viewModel.messages}"
+            tools:listitem="@layout/message_list_item"
+            />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/text_message_input_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="@string/say_something"
+            app:endIconMode="clear_text"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:startIconDrawable="@drawable/ic_twotone_image_24"
+            >
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/text_message_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionSend"
+                android:inputType="text|textCapSentences"
+                android:onEditorAction="@{(v, actionId, e) -> viewModel.onSendTextMessageInputAction(actionId)}"
+                android:text="@={viewModel.currentTextMessage}"
+                />
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

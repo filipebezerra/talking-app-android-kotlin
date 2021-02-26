@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TalkingApp</string>
+    <string name="say_something">Say something</string>
+    <string name="start_saying_something">You have no messages yet. Start saying something</string>
+    <string name="no_internet_connection">There\'s no internet connection right now, please try again in few moments!</string>
+    <string name="logout">Logout</string>
+</resources>
