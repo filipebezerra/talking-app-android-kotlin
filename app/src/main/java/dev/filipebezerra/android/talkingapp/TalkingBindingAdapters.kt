@@ -11,8 +11,12 @@ import dev.filipebezerra.android.talkingapp.domain.TalkingMessage
 import dev.filipebezerra.android.talkingapp.util.ext.applyImprovements
 
 @BindingAdapter("messagesList")
-fun RecyclerView.bindMessagesList(messagesList: List<TalkingMessage>?) = messagesList?.run {
-    (adapter as TalkingMessageAdapter).submitList(this)
+fun RecyclerView.bindMessagesList(messagesList: List<TalkingMessage>?) = messagesList?.let { list ->
+    with((adapter as TalkingMessageAdapter)) {
+        submitList(list) {
+            smoothScrollToPosition(itemCount.dec())
+        }
+    }
 }
 
 @BindingAdapter("visibleIf")

@@ -34,7 +34,7 @@ class TalkingViewModel : ViewModel() {
 
     private var userName: String = ANONYMOUS
 
-    private val _messages = MutableLiveData<List<TalkingMessage>>().apply { value = emptyList() }
+    private val _messages = MutableLiveData<List<TalkingMessage>>()
     val messages: LiveData<List<TalkingMessage>>
         get() = _messages
 
