@@ -1,5 +1,7 @@
 package dev.filipebezerra.android.talkingapp
 
+import android.content.Intent
+import android.net.Uri
 import android.view.inputmethod.EditorInfo
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,6 +14,12 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.StorageReference
+import com.google.firebase.storage.UploadTask
+import com.google.firebase.storage.ktx.component1
+import com.google.firebase.storage.ktx.component2
+import com.google.firebase.storage.ktx.storage
+import com.google.firebase.storage.ktx.storageMetadata
 import dev.filipebezerra.android.talkingapp.domain.TalkingMessage
 import dev.filipebezerra.android.talkingapp.domain.TalkingMessage.Companion.MESSAGES_DATABASE
 import dev.filipebezerra.android.talkingapp.util.event.Event
@@ -21,6 +29,8 @@ import timber.log.Timber
 class TalkingViewModel : ViewModel() {
 
     private val database = Firebase.database.reference.child(MESSAGES_DATABASE)
+
+    private val chatPhotosStorage = Firebase.storage.reference.child("chat_photos")
 
     private var userName: String = ANONYMOUS
 
@@ -109,6 +119,55 @@ class TalkingViewModel : ViewModel() {
             databaseListener = null
         }
     }
+
+    fun onActivityResultForPhotoPicker(resultIntent: Intent?) {
+        val selectedImageUri = resultIntent?.data ?: return
+        uploadImageToFirebase(selectedImageUri)
+    }
+
+    private fun uploadImageToFirebase(selectedImageUri: Uri) {
+        val uploadReference = chatPhotosStorage.child(selectedImageUri.lastPathSegment!!)
+        uploadReference.putFile(selectedImageUri).apply {
+            trackImageUploadProgress()
+            handleWhenImageUploadPaused()
+            handleWhenImageUploadCancelled()
+            handleWhenImageUploadFailed()
+            handleWhenImageUploadSucceed(uploadReference)
+        }
+    }
+
+    private val jpegMetadata = storageMetadata { contentType = "image/jpeg" }
+
+    private fun UploadTask.trackImageUploadProgress() =
+        addOnProgressListener { (bytesTransferred, totalByteCount) ->
+            val progress = (100.0 * bytesTransferred) / totalByteCount
+            Timber.d("Image upload is $progress done")
+        }
+
+    private fun UploadTask.handleWhenImageUploadPaused() = addOnPausedListener {
+        Timber.d("Image upload is paused")
+    }
+
+    private fun UploadTask.handleWhenImageUploadCancelled() = addOnCanceledListener {
+        Timber.d("Image upload is cancelled")
+    }
+
+    private fun UploadTask.handleWhenImageUploadFailed() = addOnFailureListener {
+        Timber.e(it, "Image upload failed")
+    }
+
+    private fun UploadTask.handleWhenImageUploadSucceed(uploadReference: StorageReference) =
+        addOnSuccessListener {
+            Timber.d("Image upload succeed")
+            uploadReference.downloadUrl.addOnSuccessListener { uri ->
+                TalkingMessage(
+                    userName = userName,
+                    photoUrl = uri.toString()
+                ).also {
+                    sendMessageToFirebase(it)
+                }
+            }
+        }
 
     companion object {
         private const val ANONYMOUS = "Anonymous"

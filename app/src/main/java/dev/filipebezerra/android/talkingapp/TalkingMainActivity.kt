@@ -41,6 +41,13 @@ class TalkingMainActivity : AppCompatActivity() {
 
             initializeAdapter()
             observeUI()
+
+            textMessageInputLayout.setStartIconOnClickListener {
+                Intent(Intent.ACTION_GET_CONTENT).apply {
+                    type = "image/jpeg"
+                    putExtra(Intent.EXTRA_LOCAL_ONLY, true)
+                }.run { startActivityForResult(this, RC_PHOTO_PICKER) }
+            }
         }
     }
 
@@ -65,6 +72,9 @@ class TalkingMainActivity : AppCompatActivity() {
             } else {
                 talkingViewModel.onUserSignedOut()
                 initializeAdapter()
+
+                // TODO: Fix merging sign in existing account with different provider, for example:
+                // User created account with email/password, then used Google sign in to login
                 startActivityForResult(
                     AuthUI.getInstance().createSignInIntentBuilder()
                         .setAvailableProviders(
@@ -128,10 +138,14 @@ class TalkingMainActivity : AppCompatActivity() {
                     }
                 }
             }
+            RC_PHOTO_PICKER -> resultCode.takeIf { it == Activity.RESULT_OK }?.let {
+                talkingViewModel.onActivityResultForPhotoPicker(data)
+            }
         }
     }
 
     companion object {
         private const val RC_SIGN_IN = 199
+        private const val RC_PHOTO_PICKER = 200
     }
 }
