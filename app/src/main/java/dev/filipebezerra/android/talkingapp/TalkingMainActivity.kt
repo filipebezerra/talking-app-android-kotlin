@@ -13,7 +13,6 @@ import com.firebase.ui.auth.ErrorCodes
 import com.firebase.ui.auth.IdpResponse
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
-import com.google.android.gms.common.GooglePlayServicesUtil
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -21,6 +20,9 @@ import com.google.firebase.ktx.Firebase
 import dev.filipebezerra.android.talkingapp.databinding.TalkingMainActivityBinding
 import dev.filipebezerra.android.talkingapp.util.event.EventObserver
 import dev.filipebezerra.android.talkingapp.util.ext.hideKeyboard
+import dev.filipebezerra.android.talkingapp.util.ext.toLengthFilter
+import dev.filipebezerra.android.talkingapp.util.firebase.RemoteConfig
+import dev.filipebezerra.android.talkingapp.util.firebase.RemoteConfig.talkingMessageLength
 
 class TalkingMainActivity : AppCompatActivity() {
     private lateinit var viewBinding: TalkingMainActivityBinding
@@ -50,6 +52,14 @@ class TalkingMainActivity : AppCompatActivity() {
                     type = "image/jpeg"
                     putExtra(Intent.EXTRA_LOCAL_ONLY, true)
                 }.run { startActivityForResult(this, RC_PHOTO_PICKER) }
+            }
+            textMessageInput.filters = arrayOf(talkingMessageLength().toLengthFilter())
+
+            RemoteConfig.apply {
+                init()
+                fetchConfig {
+                    textMessageInput.filters = arrayOf(talkingMessageLength().toLengthFilter())
+                }
             }
         }
     }
